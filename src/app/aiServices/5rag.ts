@@ -11,6 +11,39 @@ export const getRecipes = async () => {
   };
 
 export const findBestRecipes = async (text: string) => {
-    return "";
+
+    const fileContent = await getRecipes();
+
+    const textSplitter = new CharacterTextSplitter({
+        separator: "---"
+    });
+
+    const recipes = await textSplitter.createDocuments([fileContent]);
+
+    console.log(recipes);
+
+    //
+
+    const embeddingsModel = new OpenAIEmbeddings({apiKey: OPEN_AI_KEY});
+
+
+    const textEmbeddings = await embeddingsModel.embedQuery(text);
+
+    console.log(textEmbeddings)
+
+    const recipesEmbeddings = await embeddingsModel.embedDocuments(recipes.map(e=>e.pageContent));
+
+    const vectorStore = new MemoryVectorStore(embeddingsModel);
+
+    const similarities = recipesEmbeddings.map(recipeEmbeddings => vectorStore.similarity(textEmbeddings, recipeEmbeddings))
+
+    console.log(similarities);
+
+    const recipesWithSimilarities = recipes.map((e,i)=> ({recipe: e, value: similarities[i]}));
+
+    const relevantRecipes = recipesWithSimilarities.sort((a,b) => - a.value + b.value).slice(0,3);
+
+    return relevantRecipes.map(e=>e.recipe.pageContent).join("\n\n")
+   
 }
 

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { generateAIResponse1 } from './aiService';
+import { generateAIResponse1, generateAIResponseFull } from './aiService';
 
 const Home = () => {
   const [inputText, setInputText] = useState('');
@@ -33,7 +33,7 @@ const Home = () => {
         uploadedFiles.map((file) => fileToBase64(file))
       );
 
-      const aiResponse = await generateAIResponse1(filesBase64, inputText);
+      const aiResponse = await generateAIResponseFull(filesBase64, inputText);
       setResponse(aiResponse);
     } catch (error) {
       console.error(error);

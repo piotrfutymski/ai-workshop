@@ -10,5 +10,30 @@ export const extractAllIngredientsFromImages = async (base64Imgs: string[] | nul
 
 
 export const describeIngredientsOnImage = async (base64Img: string) => {
-    return "";
+    const model = new ChatOpenAI({
+        modelName: "gpt-4o-mini",
+        openAIApiKey: OPEN_AI_KEY,
+    });
+
+    const systemMessage = `
+        Wypisz wszystkie składniki, które mogą być wykorzystane do przygotowania potraw i znajdują się na zdjęciu.
+        W odpowiedzi uwzględnij co jest na zdjęciu a także ilość składnika.
+        Odpowiedź podaj jako listę przedzieloną przecinkami. 
+        Koniecznie oszacuj ilość danego składnika. Przykład odpowiedzi:
+        mąka 500g, jajka 10 szt., cukier ok. 100g, przyprawa do piernika - jedno opakowanie 
+    `
+
+    const prompt = ChatPromptTemplate.fromMessages([
+        ["system", systemMessage],
+        [
+          "user",
+          [{ type: "image_url", image_url: "{base64Img}" }],
+        ],
+      ]);
+
+    const chain = prompt.pipe(model);
+    const response = await chain.invoke({ base64Img });
+
+    return response.content;
+
 }
